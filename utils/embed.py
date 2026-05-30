@@ -141,7 +141,7 @@ def status_7th(name="探索者"):
     embed.add_field(name="趣味技能P",       value=str(hob_p),  inline=True)
     embed.add_field(name="ダメージボーナス", value=db(dbp),      inline=True)
     embed.add_field(name="ビルド",            value=str(build),  inline=True)
-    return embed
+    return embed , stats
 # #endregion
 
 # SANチェック
@@ -182,7 +182,7 @@ def san_check_embed(current_san: int, success_loss: str, fail_loss: str) -> disc
     if insanity_warning:
         embed.add_field(name="⚠️ 警告", value=insanity_warning, inline=False)
  
-    return embed, stats
+    return embed
 
 def oppose_embed(first: int, second: int) -> discord.Embed:
     STRopp = (first - second) + 50
