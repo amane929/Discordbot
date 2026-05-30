@@ -21,7 +21,7 @@ def roll_dice_expr(expr: str) -> tuple[int, str]:
         return val, str(val)
 
 def diceSan(current_san: int):
-    parsent = random.randint(1, 100)
-    extreme = "クリティカル" if parsent <= 5 else ("ファンブル" if parsent >= 96 else " ")
-    result  = "成功!" if parsent <= current_san else "失敗"
-    return result, extreme, parsent
+    is_success = random.randint(1, 100)
+    extreme = "クリティカル" if is_success <= 5 else ("ファンブル" if is_success >= 96 else " ")
+    result  = "成功!" if is_success <= current_san else "失敗"
+    return result, extreme, is_success

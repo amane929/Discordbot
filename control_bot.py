@@ -21,6 +21,9 @@ dice.dice(tree)
 dice.oppose(tree)
 dice.roll(tree)
 pc.pc(tree)
+pc.pc_load(tree)
+pc.pc_delete(tree)
+pc.pc_list(tree)
 san.san(tree)
 
 
