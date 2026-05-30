@@ -36,18 +36,17 @@ def roll(tree: discord.app_commands.CommandTree):
     @tree.command(name="roll", description="ダイスロール")
     @discord.app_commands.describe(formula="例: 2d6")
     async def _roll(interaction: discord.Interaction, formula: str):
-         try:
+        try:
               num, sides = formula.split("d")
               num = int(num)
               sides = int(sides)
               if num <= 0 or sides <= 0:
                 raise ValueError
-         except ValueError:
+        except ValueError:
               await interaction.response.send_message("⚠️ダイスの形式が正しくありません。例: `2d6`")
               return
           
-         num, sides = formula.split("d")
-         rolls = ndn(num, sides)
-         total = sum(rolls)
-         detail = " + ".join(str(r) for r in rolls)
-         await interaction.response.send_message(f"{formula} → {detail} = {total}")
+        rolls = ndn(num, sides)
+        total = sum(rolls)
+        detail = " + ".join(str(r) for r in rolls)
+        await interaction.response.send_message(f"{formula} → {detail} = {total}")
