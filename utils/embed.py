@@ -1,22 +1,21 @@
-import random
 import discord
-import os
-from typing import Literal
+import random
 from bisect import bisect_left
-from dotenv import load_dotenv
+from utils.roller import roll_dice_expr, ndn
 
-load_dotenv()
-TOKEN = os.getenv("DISCORD_TOKEN")
+def diceSF(skill: int):
+    parsent = random.randint(1, 100)
+    extreme = "クリティカル" if parsent <= 5 else ("ファンブル" if parsent >= 96 else " ")
+    result  = "成功!" if parsent <= skill else "失敗"
 
-#discord.pyのクライアントとコマンドツリーの設定
-intents = discord.Intents.default()
-client = discord.Client(intents=intents)
-tree = discord.app_commands.CommandTree(client)
+    embed = discord.Embed(title="1d100 成功判定ロール", color=0xe0ffff)
+    embed.add_field(name="技能値",   value=str(skill),   inline=True)
+    embed.add_field(name="ダイス目", value=str(parsent), inline=True)
+    embed.add_field(name="判定結果", value=f"**{extreme.strip()} {result}**", inline=False)
+    return embed
 
-# ダイスを振る関数
-def ndn(a, b):
-    return [random.randint(1, int(b)) for _ in range(int(a))]
 
+# #region pc能力値
 #dbの計算関数
 def db(db):
     if not (2 <= db <= 184):
@@ -26,46 +25,6 @@ def db(db):
     labels = ["-1d6", "-1d4", "±0", "+1d4", "+1d6", "+2d6", "+3d6", "+4d6", "+5d6", "+6d6", "+7d6", "+8d6", "+9d6", "+10d6"]
     
     return labels[bisect_left(thresholds, db)]
-
-# ダイス判定の関数
-def diceSF(skill):
-    if skill <= 0:
-        return "技能値は自然数で入力してください"
-
-    parsent = random.randint(1, 100)
-    if parsent <= 5:
-        extreme = "クリティカル"
-    elif parsent >= 96:
-        extreme = "ファンブル"
-    else:
-        extreme = " "
-
-    if parsent <= skill:
-        result = "成功!"
-    else:
-        result = "失敗"
-
-    embed = discord.Embed(title=f"1d100 成功判定ロール", color=0xe0ffff)
-    embed.add_field(name="技能値", value=str(skill), inline=True)
-    embed.add_field(name="ダイス目", value=str(parsent), inline=True)
-    embed.add_field(name="判定結果", value=f"**{extreme.strip()} {result}**", inline=False)
-    return embed
-
-# ダイス式（"1d6" や "2" など）を評価してロール結果を返す関数
-def roll_dice_expr(expr: str) -> tuple[int, str]:
-    expr = expr.strip().lower()
-    if "d" in expr:
-        parts = expr.split("d")
-        if len(parts) != 2:
-            raise ValueError(f"無効なダイス式: {expr}")
-        num, sides = int(parts[0]), int(parts[1])
-        rolls = ndn(num, sides)
-        total = sum(rolls)
-        detail = f"{expr}[{', '.join(str(r) for r in rolls)}]"
-        return total, detail
-    else:
-        val = int(expr)
-        return val, str(val)
 
 # 6版の能力値を振る関数
 def status_6th(name="探索者"):
@@ -156,90 +115,14 @@ def status_7th(name="探索者"):
     embed.add_field(name="ダメージボーナス", value=db(dbp),      inline=True)
     embed.add_field(name="ビルド",            value=str(build),  inline=True)
     return embed
-
-# PCの能力値を振るコマンド
-@tree.command(name="pc", description="PCの能力値を振る")
-@discord.app_commands.describe(name="キャラクター名（省略可）",edition="ルールブックの版（6版 or 7版）")
-async def _pc(interaction: discord.Interaction, name: str = "探索者",edition: Literal["6版", "7版"] = "6版"):
-    if edition == "6版":
-        embed = status_6th(name=name)
-        await interaction.response.send_message(embed=embed)
-
-    elif edition == "7版":
-        embed = status_7th(name=name)
-        await interaction.response.send_message(embed=embed)
-
-# 1d100のコマンド
-@tree.command(name="1d100", description="100面ダイス ")
-@discord.app_commands.describe(skill="技能値")
-async def _1d100(interaction: discord.Interaction, skill: int):
-    if isinstance(skill, int) == False or skill <= 0:
-        await interaction.response.send_message("⚠️技能値は自然数で入力してください")
-        return
-    
-    embed = diceSF(skill)
-    await interaction.response.send_message(embed=embed)
-
-
-# ダイスロールのコマンド
-@tree.command(name="roll", description="ダイスロール")
-@discord.app_commands.describe(formula="例: 2d6")
-async def _roll(interaction: discord.Interaction, formula: str):
-    num, sides = formula.split("d")
-    rolls = ndn(num, sides)
-    total = sum(rolls)
-    detail = " + ".join(str(r) for r in rolls)
-    await interaction.response.send_message(f"{formula} → {detail} = {total}")
-
-# 対抗ロール
-@tree.command(name="oppose", description="対抗ロール")
-@discord.app_commands.describe(
-    first="例: 13(STR) 一人称",
-    second="例: 12(STR) 二人称"
-)
-async def oppose(interaction: discord.Interaction, first: int, second: int):
-    if isinstance(first, int)  == False or first <= 0:
-        await interaction.response.send_message("⚠️一人称の技能値は自然数で入力してください")
-        return
-    if isinstance(second, int)  == False or second <= 0:
-        await interaction.response.send_message("⚠️二人称の技能値は自然数で入力してください")
-        return
-    
-    STRopp = (first - second) + 50
-    diceSF_result = diceSF(STRopp)
-    embed = discord.Embed(title = "対抗ロール", color=0x5865F2)
-    embed.add_field(name="一人称", value=str(first), inline=False)
-    embed.add_field(name="二人称", value=str(second), inline=False)
-    embed.add_field(name="成功率", value=f"{STRopp}%", inline=False)
-    embed.add_field(name="判定結果", value=diceSF_result, inline=False)
-    await interaction.response.send_message(embed=embed)
+# #endregion
 
 # SANチェック
-@tree.command(name="san", description="SANチェック（正気度判定）")
-@discord.app_commands.describe(
-    current_san="現在のSAN値（1〜99）",
-    success_loss="成功時のSAN減少量（例: 0 または 1）",
-    fail_loss="失敗時のSAN減少量（例: 1d6 または 2）"
-)
-async def _san(interaction: discord.Interaction, current_san: int, success_loss: str, fail_loss: str):
-    if not (1 <= current_san <= 99):
-        await interaction.response.send_message("⚠️ SAN値は1〜99の範囲で入力してください。")
-        return
-
-    # ダイス式のパース
-    try:
-        success_val, success_detail = roll_dice_expr(success_loss)
-        fail_val,    fail_detail    = roll_dice_expr(fail_loss)
-    except (ValueError, IndexError):
-        await interaction.response.send_message(
-            "⚠️ SAN減少量の形式が正しくありません。\n"
-            "例: `0`、`1`、`1d4`、`1d6` など"
-        )
-        return
- 
+def san_check_embed(current_san: int, success_loss: str, fail_loss: str) -> discord.Embed:
+    success_val, success_detail = roll_dice_expr(success_loss)
+    fail_val, fail_detail = roll_dice_expr(fail_loss)
     # 1d100を振って判定（_judge()を再利用）
     result, extreme, is_success = diceSF(current_san)
- 
     judge_label = extreme.strip() if extreme.strip() else result.rstrip("!")
     color = 0x57F287 if is_success else 0xED4245
  
@@ -272,11 +155,14 @@ async def _san(interaction: discord.Interaction, current_san: int, success_loss:
     if insanity_warning:
         embed.add_field(name="⚠️ 警告", value=insanity_warning, inline=False)
  
-    await interaction.response.send_message(embed=embed)
+    return embed
 
-# 最初に実行されるもの
-@client.event
-async def on_ready():
-    await tree.sync()
- 
-client.run(TOKEN)
+def oppose(first: int, second: int) -> discord.Embed:
+        STRopp = (first - second) + 50
+        diceSF_result = diceSF(STRopp)
+        embed = discord.Embed(title = "対抗ロール", color=0x5865F2)
+        embed.add_field(name="一人称", value=str(first), inline=False)
+        embed.add_field(name="二人称", value=str(second), inline=False)
+        embed.add_field(name="成功率", value=f"{STRopp}%", inline=False)
+        embed.add_field(name="判定結果", value=diceSF_result, inline=False)
+        return embed
