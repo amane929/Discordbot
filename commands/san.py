@@ -22,8 +22,8 @@ def san(tree: discord.app_commands.CommandTree):
 
         # ダイス式のパース
         try:
-            embed = san_check_embed(current_san, success_loss, fail_loss)
-            await interaction.response.send_message(embed=embed)
+            sanembed = san_check_embed(current_san, success_loss, fail_loss)
+            await interaction.response.send_message(embed=sanembed)
         except (ValueError, IndexError):
             await interaction.response.send_message(
                 "⚠️ SAN減少量の形式が正しくありません。\n"

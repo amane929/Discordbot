@@ -4,11 +4,21 @@ from bisect import bisect_left
 from utils.roller import roll_dice_expr, ndn
 from utils.roller import diceSan
 
+# 1d100の成功判定
 def diceSF(skill: int):
     parsent = random.randint(1, 100)
-    extreme = "クリティカル" if parsent <= 5 else ("ファンブル" if parsent >= 96 else " ")
-    result  = "成功!" if parsent <= skill else "失敗"
-
+    if parsent <= skill:
+        result  = "成功!"
+        if parsent <= 5:
+            extreme = "クリティカル"
+        else:
+            extreme = " "
+    else:
+        result = "失敗"
+        if parsent >= 96:
+            extreme = "ファンブル"
+        else:
+            extreme = " "
     embed = discord.Embed(title="1d100 成功判定ロール", color=0xe0ffff)
     embed.add_field(name="技能値",   value=str(skill),   inline=True)
     embed.add_field(name="ダイス目", value=str(parsent), inline=True)
@@ -48,6 +58,14 @@ def status_6th(name="探索者"):
     hob_p = INT * 10
     dbp   = STR + SIZ
 
+    stats = {
+        "STR": STR, "CON": CON, "POW": POW, "DEX": DEX,
+        "APP": APP, "SIZ": SIZ, "INT": INT, "EDU": EDU,
+        "SAN": SAN, "幸運": luck, "アイデア": idea, "知識": know,
+        "耐久力": hp, "MP": mp, "職業技能P": job_p, "趣味技能P": hob_p,
+        "ダメージボーナス": db(dbp)
+    }
+
     embed = discord.Embed(title=f"{name} のキャラクターシート（6版）", color=0x5865F2)
     embed.add_field(name="⚔️ 能力値", value="───────────", inline=False)
     embed.add_field(name="STR（筋力）",   value=str(STR), inline=True)
@@ -70,7 +88,7 @@ def status_6th(name="探索者"):
     embed.add_field(name="職業技能P",       value=str(job_p),  inline=True)
     embed.add_field(name="趣味技能P",       value=str(hob_p),  inline=True)
     embed.add_field(name="ダメージボーナス", value=db(dbp),          inline=True)
-    return embed
+    return embed, stats
 
 # 7版の能力値を振る関数
 def status_7th(name="探索者"):
@@ -90,8 +108,16 @@ def status_7th(name="探索者"):
     hp    = (CON + SIZ) // 10
     mp    = POW // 5
     hob_p = INT * 2
-    dbp   = STR + SIZ // 5
+    dbp   = (STR + SIZ) // 5
     build = STR + SIZ
+
+    stats = {
+        "STR": STR, "CON": CON, "POW": POW, "DEX": DEX,
+        "APP": APP, "SIZ": SIZ, "INT": INT, "EDU": EDU,
+        "SAN": SAN, "幸運": luck, "アイデア": idea, "知識": know,
+        "耐久力": hp, "MP": mp, "趣味技能P": hob_p,
+        "ダメージボーナス": db(dbp), "ビルド": build
+    }
 
     embed = discord.Embed(title=f"{name} のキャラクターシート（7版）", color=0x5865F2)
     embed.add_field(name="⚔️ 能力値", value="───────────", inline=False)
@@ -156,14 +182,26 @@ def san_check_embed(current_san: int, success_loss: str, fail_loss: str) -> disc
     if insanity_warning:
         embed.add_field(name="⚠️ 警告", value=insanity_warning, inline=False)
  
-    return embed
+    return embed, stats
 
 def oppose_embed(first: int, second: int) -> discord.Embed:
-        STRopp = (first - second) + 50
-        diceSF_result = diceSF(STRopp)
-        embed = discord.Embed(title = "対抗ロール", color=0x5865F2)
-        embed.add_field(name="一人称", value=str(first), inline=False)
-        embed.add_field(name="二人称", value=str(second), inline=False)
-        embed.add_field(name="成功率", value=f"{STRopp}%", inline=False)
-        embed.add_field(name="判定結果", value=diceSF_result, inline=False)
-        return embed
+    STRopp = (first - second) + 50
+    parsent = random.randint(1, 100)
+    if parsent <= STRopp:
+        result  = "成功!"
+        if parsent <= 5:
+            extreme = "クリティカル"
+        else:
+            extreme = " "
+    else:
+        result = "失敗"
+        if parsent >= 96:
+            extreme = "ファンブル"
+        else:
+            extreme = " "
+    embed = discord.Embed(title = "対抗ロール", color=0x5865F2)
+    embed.add_field(name="一人称", value=str(first), inline=False)
+    embed.add_field(name="二人称", value=str(second), inline=False)
+    embed.add_field(name="成功率", value=f"{STRopp}%", inline=False)
+    embed.add_field(name="判定結果", value=f"{result} ({extreme})", inline=False)
+    return embed

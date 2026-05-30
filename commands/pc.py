@@ -10,11 +10,15 @@ def pc(tree: discord.app_commands.CommandTree):
     @discord.app_commands.describe(name="キャラクター名（省略可）",edition="ルールブックの版（6版 or 7版）")
     async def _pc(interaction: discord.Interaction, name: str = "探索者",edition: Literal["6版", "7版"] = "6版"):
         if edition == "6版":
-            embed = status_6th(name=name)
+            embed, stats = status_6th(name=name)
             await interaction.response.send_message(embed=embed)
+            _pending[interaction.user.id] = {"edition": edition, "stats": stats}
+            await interaction.response.send_message(embed=embed, view=SaveView())
         elif edition == "7版":
-            embed = status_7th(name=name)
+            embed, stats = status_7th(name=name)
             await interaction.response.send_message(embed=embed)
+            _pending[interaction.user.id] = {"edition": edition, "stats": stats}
+            await interaction.response.send_message(embed=embed, view=SaveView())
 
 
 
