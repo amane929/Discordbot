@@ -11,12 +11,10 @@ def pc(tree: discord.app_commands.CommandTree):
     async def _pc(interaction: discord.Interaction, name: str = "探索者",edition: Literal["6版", "7版"] = "6版"):
         if edition == "6版":
             embed, stats = status_6th(name=name)
-            await interaction.response.send_message(embed=embed)
             _pending[interaction.user.id] = {"edition": edition, "stats": stats}
             await interaction.response.send_message(embed=embed, view=SaveView())
         elif edition == "7版":
             embed, stats = status_7th(name=name)
-            await interaction.response.send_message(embed=embed)
             _pending[interaction.user.id] = {"edition": edition, "stats": stats}
             await interaction.response.send_message(embed=embed, view=SaveView())
 

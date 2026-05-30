@@ -1,10 +1,5 @@
-import random
 import discord
 from utils.embed import san_check_embed
-
-# ダイスを振る関数
-def ndn(a, b):
-    return [random.randint(1, int(b)) for _ in range(int(a))]
 
 
 def san(tree: discord.app_commands.CommandTree):
