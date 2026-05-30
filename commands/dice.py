@@ -1,5 +1,5 @@
 import discord
-from utils.embed import diceSF
+from utils.embed import diceSF, oppose_embed
 from utils.roller import ndn
 
 # このファイルを呼び出す側（dice_bot.py）からtreeを受け取る
@@ -28,7 +28,7 @@ def oppose(tree: discord.app_commands.CommandTree):
            await interaction.response.send_message("⚠️二人称の技能値は自然数で入力してください")
            return 
         
-        embed = oppose(first, second)
+        embed = oppose_embed(first, second)
         await interaction.response.send_message(embed=embed)
 
 # ダイスロールのコマンド

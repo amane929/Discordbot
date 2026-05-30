@@ -2,6 +2,7 @@ import discord
 import random
 from bisect import bisect_left
 from utils.roller import roll_dice_expr, ndn
+from utils.roller import diceSan
 
 def diceSF(skill: int):
     parsent = random.randint(1, 100)
@@ -122,7 +123,7 @@ def san_check_embed(current_san: int, success_loss: str, fail_loss: str) -> disc
     success_val, success_detail = roll_dice_expr(success_loss)
     fail_val, fail_detail = roll_dice_expr(fail_loss)
     # 1d100を振って判定（_judge()を再利用）
-    result, extreme, is_success = diceSF(current_san)
+    result, extreme, is_success= diceSan(current_san)
     judge_label = extreme.strip() if extreme.strip() else result.rstrip("!")
     color = 0x57F287 if is_success else 0xED4245
  
@@ -157,7 +158,7 @@ def san_check_embed(current_san: int, success_loss: str, fail_loss: str) -> disc
  
     return embed
 
-def oppose(first: int, second: int) -> discord.Embed:
+def oppose_embed(first: int, second: int) -> discord.Embed:
         STRopp = (first - second) + 50
         diceSF_result = diceSF(STRopp)
         embed = discord.Embed(title = "対抗ロール", color=0x5865F2)
